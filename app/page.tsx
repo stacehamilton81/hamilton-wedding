@@ -53,17 +53,16 @@ export default function Home() {
       <div className="p-5 space-y-5">
         {/* Pick Photos Upload Box */}
         <label className="block border-[3px] border-dashed border-accent-pink/60 rounded-[2.5rem] p-10 text-center cursor-pointer bg-white transition hover:border-accent-pink/100 hover:bg-gray-50">
-          <input 
+      <input 
   type="file" 
   accept="image/*" 
   multiple 
-  capture="environment" // This encourages mobile browsers to use the rear camera
+  /* REMOVED: capture="environment" */
   className="sr-only" 
   onChange={(e) => {
     const files = e.target.files;
     if (files) {
       console.log(`${files.length} photos selected`);
-      // We'll hook this up to your upload logic next
     }
   }}
 />
