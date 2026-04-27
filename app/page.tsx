@@ -57,7 +57,7 @@ export default function Home() {
     try {
       // We list the 'thumbs' folder for the gallery grid to keep it fast
       const { data, error } = await supabase.storage
-        .from('wedding-photos')
+        .from('WEDDING-PHOTOS')
         .list('thumbs', {
           limit: 100,
           sortBy: { column: 'created_at', order: 'desc' },
@@ -67,8 +67,8 @@ export default function Home() {
 
       if (data) {
         const photoSets = data.map((file) => {
-          const { data: thumbData } = supabase.storage.from('wedding-photos').getPublicUrl(`thumbs/${file.name}`);
-          const { data: fullData } = supabase.storage.from('wedding-photos').getPublicUrl(`originals/${file.name}`);
+          const { data: thumbData } = supabase.storage.from('WEDDING-PHOTOS').getPublicUrl(`thumbs/${file.name}`);
+          const { data: fullData } = supabase.storage.from('WEDDING-PHOTOS').getPublicUrl(`originals/${file.name}`);
           
           return {
             thumb: `${thumbData.publicUrl}?t=${Date.now()}`,
@@ -97,7 +97,7 @@ export default function Home() {
 
         // 1. Upload ORIGINAL (The big 10MB version for your archives)
         const { error: fullError } = await supabase.storage
-          .from('wedding-photos')
+          .from('WEDDING-PHOTOS')
           .upload(`originals/${fileName}`, file, {
             metadata: { owner: deviceId }
           });
@@ -112,7 +112,7 @@ export default function Home() {
         const compressedBlob = await imageCompression(file, options);
         
         const { error: thumbError } = await supabase.storage
-          .from('wedding-photos')
+          .from('WEDDING-PHOTOS')
           .upload(`thumbs/${fileName}`, compressedBlob, {
             metadata: { owner: deviceId }
           });
@@ -143,7 +143,7 @@ export default function Home() {
     if (userInput === adminPass || userInput === "") {
       // Delete from both folders to stay clean
       const { error } = await supabase.storage
-        .from('wedding-photos')
+        .from('WEDDING-PHOTOS')
         .remove([`originals/${fileName}`, `thumbs/${fileName}`]);
 
       if (error) {
