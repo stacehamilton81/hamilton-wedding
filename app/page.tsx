@@ -177,7 +177,7 @@ export default function Home() {
           <img
             src={eventDetails.profileImageUrl}
             alt="Profile"
-            className="w-40 h-40 rounded-full border-4 border-white/20 shadow-2xl mb-6 object-cover"
+            className="w-40 h-40 rounded-full border-6 border-[#d0006f] shadow-2xl mb-6 object-cover"
           />
           <h1 className="text-[32px] font-extrabold tracking-tight leading-tight drop-shadow-2xl mb-8">
             The Hamilton<br />Wedding
