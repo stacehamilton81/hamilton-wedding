@@ -213,7 +213,7 @@ export default function Home() {
         {/* PHOTO WALL IMPROVEMENTS */}
         <div className="w-full mt-auto bg-black/70 backdrop-blur-2xl rounded-t-[3rem] p-4 pt-8 border-t border-white/10 shadow-2xl">
           <div className="flex justify-between items-center px-4 mb-6 text-white/50 text-[10px] uppercase tracking-[0.2em] font-black">
-            <span>{images.length} Photos Captured</span>
+            <span>{images.length} Photos Shared</span>
             <div className="h-[1px] flex-grow ml-4 bg-white/10"></div>
           </div>
 
