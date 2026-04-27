@@ -1,5 +1,10 @@
 'use client';
+import { Montserrat } from 'next/font/google'; // Google Sans is a proprietary font, Montserrat is the closest open-source equivalent and looks nearly identical.
 
+const sans = Montserrat({ 
+  subsets: ['latin'],
+  weight: ['400', '700', '900'] 
+});
 import { useState, useEffect } from 'react';
 import { supabase } from '../src/lib/supabaseClient';
 import imageCompression from 'browser-image-compression';
@@ -173,17 +178,17 @@ export default function Home() {
 
       <div className="relative z-10 flex flex-col min-h-screen text-white">
         
-        <div className="flex flex-col items-center p-8 text-center pt-12">
-          <img
-            src={eventDetails.profileImageUrl}
-            alt="Profile"
-            className="w-40 h-40 rounded-full border-6 border-[#d0006f] shadow-2xl mb-6 object-cover"
-          />
-          <h1 className="text-[32px] font-extrabold tracking-tight leading-tight drop-shadow-2xl mb-8">
-            The Hamilton<br />Wedding
-          </h1>
-        </div>
-
+    <div className={`flex flex-col items-center p-8 text-center pt-12 ${sans.className}`}>
+  <img
+    src={eventDetails.profileImageUrl}
+    alt="Profile"
+    className="w-40 h-40 rounded-full border-8 border-[#d0006f] shadow-2xl mb-6 object-cover"
+  />
+  <h1 className="text-[36px] font-black tracking-tight leading-[1.1] drop-shadow-2xl mb-8 text-white">
+    The Hamilton<br />
+    <span className="font-light opacity-90">Wedding</span>
+  </h1>
+</div>
         <div className="px-6 pb-12 flex justify-center">
           <label className={`relative flex items-center justify-center gap-3 rounded-2xl py-4 px-10 shadow-2xl transition-all cursor-pointer w-full max-w-[300px]
             ${isUploading 
