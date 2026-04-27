@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // This is the only line we need to fix the "Blocked cross-origin" error
+  allowedDevOrigins: ['192.168.0.129'],
 };
 
 export default nextConfig;

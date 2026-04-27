@@ -1,116 +1,301 @@
-// src/app/page.tsx
-'use client'; // This directive is required for Tailwind interaction/state
+'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../src/lib/supabaseClient';
+import imageCompression from 'browser-image-compression';
 
-// Mock data for the event structure
 const eventDetails = {
-  name: "The Robinsons Wedding",
-  // A placeholder couple profile image
-  profileImageUrl: "https://res.cloudinary.com/demo/image/upload/ar_1:1,c_fill,g_auto,r_max,w_200/couple_profile.jpg",
+  name: "The Hamilton Wedding",
+  profileImageUrl: "img/happy_couple.png",
 };
 
-// Mock data for the live gallery (thumbnails)
-const galleryPhotos = [
-  { id: 1, url: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg' },
-  { id: 2, url: 'https://res.cloudinary.com/demo/image/upload/v1312461204/some_image.jpg' },
-  { id: 3, url: 'https://res.cloudinary.com/demo/image/upload/c_thumb,w_200,g_face/v1/faces/sleeping_baby.jpg' },
-  { id: 4, url: 'https://res.cloudinary.com/demo/image/upload/c_thumb,w_200,g_face/v1/faces/old_man.jpg' },
-  { id: 5, url: 'https://res.cloudinary.com/demo/image/upload/ar_1:1,c_fill,g_auto/v1312461204/flower.jpg' },
-  { id: 6, url: 'https://res.cloudinary.com/demo/image/upload/ar_1:1,c_fill,g_auto/v1312461204/house.jpg' },
-];
+const getDeviceId = () => {
+  if (typeof window === 'undefined') return '';
+  let id = localStorage.getItem('wedding_device_id');
+  if (!id) {
+    id = Math.random().toString(36).substring(2, 15);
+    localStorage.setItem('wedding_device_id', id);
+  }
+  return id;
+};
+
+// Define the structure for our images to handle both sizes
+interface PhotoSet {
+  thumb: string;
+  full: string;
+}
 
 export default function Home() {
-  // We will add state management for the upload later
-  // const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [images, setImages] = useState<PhotoSet[]>([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetchImages();
+  }, []);
+
+
+  const handleDownload = async (url: string) => {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    // Name the file something nice for the guests
+    link.download = `Hamilton-Wedding-${Date.now()}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error('Download failed:', error);
+  }
+};
+
+  const fetchImages = async () => {
+    try {
+      // We list the 'thumbs' folder for the gallery grid to keep it fast
+      const { data, error } = await supabase.storage
+        .from('wedding-photos')
+        .list('thumbs', {
+          limit: 100,
+          sortBy: { column: 'created_at', order: 'desc' },
+        });
+
+      if (error) throw error;
+
+      if (data) {
+        const photoSets = data.map((file) => {
+          const { data: thumbData } = supabase.storage.from('wedding-photos').getPublicUrl(`thumbs/${file.name}`);
+          const { data: fullData } = supabase.storage.from('wedding-photos').getPublicUrl(`originals/${file.name}`);
+          
+          return {
+            thumb: `${thumbData.publicUrl}?t=${Date.now()}`,
+            full: `${fullData.publicUrl}?t=${Date.now()}`
+          };
+        });
+        setImages(photoSets);
+      }
+    } catch (err) {
+      console.error("Error fetching images:", err);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const deviceId = getDeviceId();
+    setIsUploading(true);
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        // 1. Upload ORIGINAL (The big 10MB version for your archives)
+        const { error: fullError } = await supabase.storage
+          .from('wedding-photos')
+          .upload(`originals/${fileName}`, file, {
+            metadata: { owner: deviceId }
+          });
+        if (fullError) throw fullError;
+
+        // 2. Create and Upload THUMBNAIL (The ~100KB version for the app speed)
+        const options = {
+          maxSizeMB: 0.1, 
+          maxWidthOrHeight: 800,
+          useWebWorker: true,
+        };
+        const compressedBlob = await imageCompression(file, options);
+        
+        const { error: thumbError } = await supabase.storage
+          .from('wedding-photos')
+          .upload(`thumbs/${fileName}`, compressedBlob, {
+            metadata: { owner: deviceId }
+          });
+        if (thumbError) throw thumbError;
+      }
+      
+      setTimeout(async () => {
+        await fetchImages();
+        setIsUploading(false);
+      }, 800);
+
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      alert("Upload failed: " + error.message);
+      setIsUploading(false);
+    } finally {
+      e.target.value = '';
+    }
+  };
+
+  const handleDelete = async (fullUrl: string) => {
+    const fileName = fullUrl.split('/').pop()?.split('?')[0];
+    if (!fileName) return;
+
+    const adminPass = "Hamilton2026"; 
+    const userInput = prompt("To delete, enter the Admin Password. (If this is your photo, try leaving it blank)");
+
+    if (userInput === adminPass || userInput === "") {
+      // Delete from both folders to stay clean
+      const { error } = await supabase.storage
+        .from('wedding-photos')
+        .remove([`originals/${fileName}`, `thumbs/${fileName}`]);
+
+      if (error) {
+        alert("Delete failed. You might not have permission.");
+      } else {
+        setSelectedImageIndex(null);
+        fetchImages();
+      }
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans">
-      {/* 1. HEADER (Visually matched to image_0.png) */}
-      <header className="p-4 border-b border-gray-100 flex items-center justify-between">
-        <a href="#" className="text-sm font-medium text-accent-pink hover:opacity-80 flex items-center gap-1">
-          <span className="text-xl">←</span> Back to album
-        </a>
-        {/* Kululu logo or burger menu placeholder (optional, not core guest functionality) */}
-        <div className="w-8 h-8 flex flex-col justify-between p-1 cursor-pointer">
-            <span className="w-full h-0.5 bg-gray-500 rounded-full"></span>
-            <span className="w-full h-0.5 bg-gray-500 rounded-full"></span>
-            <span className="w-full h-0.5 bg-gray-500 rounded-full"></span>
-        </div>
-      </header>
+    <div 
+      className="min-h-screen bg-cover bg-center bg-no-repeat transition-all duration-1000 relative font-sans"
+      style={{ 
+        backgroundImage: images[0] ? `url(${images[0].thumb})` : 'none',
+        backgroundColor: '#111' 
+      }}
+    >
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]"></div>
 
-      {/* 2. EVENT PROFILE SECTION */}
-      <div className="flex flex-col items-center p-6 pb-2 text-center">
-        <img
-          src={eventDetails.profileImageUrl}
-          alt={eventDetails.name}
-          className="w-24 h-24 rounded-full border-4 border-white shadow-xl mb-4 object-cover"
-        />
-        <h1 className="text-2xl font-semibold text-gray-950 px-4">{eventDetails.name}</h1>
-      </div>
-
-      {/* 3. UPLOAD BUTTONS SECTION (Matching the dashed style of image_0.png) */}
-      <div className="p-5 space-y-5">
-        {/* Pick Photos Upload Box */}
-        <label className="block border-[3px] border-dashed border-accent-pink/60 rounded-[2.5rem] p-10 text-center cursor-pointer bg-white transition hover:border-accent-pink/100 hover:bg-gray-50">
-      <input 
-  type="file" 
-  accept="image/*" 
-  multiple 
-  /* REMOVED: capture="environment" */
-  className="sr-only" 
-  onChange={(e) => {
-    const files = e.target.files;
-    if (files) {
-      console.log(`${files.length} photos selected`);
-    }
-  }}
-/>
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-accent-pink/5 border-2 border-accent-pink/20 mb-4 shadow-inner">
-            {/* Visual replacement for the Camera Icon (SVG) */}
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-10 h-10 text-accent-pink">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.822 1.316Z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
-            </svg>
+      <div className="relative z-10 flex flex-col min-h-screen text-white">
+        
+        <header className="p-4 flex items-center justify-end">
+          <div className="flex flex-col gap-1 w-6 opacity-70">
+            <span className="h-0.5 w-full bg-white"></span>
+            <span className="h-0.5 w-full bg-white"></span>
+            <span className="h-0.5 w-full bg-white"></span>
           </div>
-          <span className="block text-2xl font-semibold text-accent-pink">Pick Photos</span>
-        </label>
+        </header>
 
-        {/* Pick Videos Upload Box (Visually similar but placeholder) */}
-        <label className="block border-[3px] border-dashed border-gray-200 rounded-[2.5rem] p-10 text-center cursor-pointer bg-white transition hover:border-gray-300 hover:bg-gray-50 opacity-60">
-          {/* Optional Video Input */}
-          {/* <input type="file" accept="video/*" multiple className="sr-only" /> */}
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-50 mb-4 border border-gray-100 shadow-inner">
-            {/* Visual replacement for Video Camera Icon (SVG) */}
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-10 h-10 text-gray-400">
-                <path strokeLinecap="round" strokeLinejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
-            </svg>
+        <div className="flex flex-col items-center p-8 text-center">
+          <img
+            src={eventDetails.profileImageUrl}
+            alt="Profile"
+            className="w-48 h-48 rounded-full border-4 border-white/70 shadow-2xl mb-6 object-cover"
+          />
+          <h1 className="text-[34px] font-extrabold tracking-tight leading-[1.1] text-center drop-shadow-2xl mb-10 text-white">
+            The Hamilton<br />Wedding
+          </h1>
+        </div>
+
+        <div className="px-6 pb-12 flex justify-center">
+          <label className={`relative flex items-center justify-center gap-3 rounded-[14px] py-[18px] px-10 shadow-2xl transition-all cursor-pointer w-full max-w-[320px]
+            ${isUploading 
+              ? 'bg-[#b0005e] opacity-80' 
+              : 'bg-[#d0006f] hover:bg-[#b0005e] active:scale-[0.96] shadow-pink-900/40' 
+            }`}>
+            
+            <input type="file" accept="image/*" multiple className="hidden" disabled={isUploading} onChange={handleFileUpload} />
+
+            {isUploading ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+            ) : (
+              /* WHITE MINIMAL CAMERA ICON */
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-6 h-6">
+                <path d="M12 9a3.75 3.75 0 1 0 0 7.5A3.75 3.75 0 0 0 12 9Z" />
+                <path fillRule="evenodd" d="M9.344 3.071a49.52 49.52 0 0 1 5.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 0 1-3 3h-15a3 3 0 0 1-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 0 0 1.11-.71l.822-1.315a2.942 2.942 0 0 1 2.332-1.39ZM6.75 12.75a5.25 5.25 0 1 1 10.5 0 5.25 5.25 0 0 1-10.5 0Zm12-1.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clipRule="evenodd" />
+              </svg>
+            )}
+            
+            <span className="text-[20px] font-bold tracking-tight whitespace-nowrap uppercase">
+              {isUploading ? 'Uploading...' : 'Upload Photos'}
+            </span>
+          </label>
+        </div>
+
+        <div className="w-full mt-auto bg-black/40 backdrop-blur-md rounded-t-[2.5rem] p-3 pt-6 border-t border-white/10">
+          <div className="flex flex-col items-center text-center text-white/90 text-sm mb-6 font-medium">
+            <span className="drop-shadow">{images.length} items in gallery</span>
           </div>
-          <span className="block text-2xl font-semibold text-gray-400">Pick Videos</span>
-        </label>
 
-        {/* Text Post Link (Matched style of image_0.png) */}
-        <div className="text-center py-2">
-            <span className="text-gray-900 text-lg">Or add a </span>
-            <a href="#" className="text-accent-pink text-lg font-medium underline underline-offset-4 decoration-accent-pink/30 hover:decoration-accent-pink/80 transition-colors">text post</a>
+          <div className="grid grid-cols-3 gap-1 px-1 pb-10">
+            {isUploading && (
+              <div className="aspect-square bg-white/5 flex items-center justify-center border border-white/10 animate-pulse rounded-sm">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#d0006f]"></div>
+              </div>
+            )}
+
+            {images.map((imgSet, index) => (
+              <div 
+                key={index} 
+                className="aspect-square bg-white/5 overflow-hidden cursor-pointer active:opacity-80 transition-opacity"
+                onClick={() => setSelectedImageIndex(index)}
+              >
+                <img src={imgSet.thumb} className="object-cover w-full h-full" alt="Gallery thumbnail" loading="lazy" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* 4. THE LIVE GALLERY GRID (Matching image_1.png) */}
-      <div className="p-4 border-t border-gray-100">
-        <h2 className="text-lg font-semibold text-gray-950 mb-4 px-2">Live Photo Wall</h2>
-        <div className="grid grid-cols-3 gap-1.5 md:gap-2">
-          {galleryPhotos.map((photo) => (
-            <div key={photo.id} className="aspect-square bg-gray-50 rounded-xl overflow-hidden shadow-inner group">
-              <img 
-                src={photo.url} 
-                alt={`Photo ${photo.id}`} 
-                className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105" 
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* FULL-SCREEN IMAGE VIEWER */}
+{selectedImageIndex !== null && (
+  <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-4">
+    {/* CLOSE BUTTON */}
+    <button 
+      className="absolute top-12 right-6 text-white text-4xl p-2 z-[110]"
+      onClick={() => setSelectedImageIndex(null)}
+    >
+      &times;
+    </button>
+    
+    {/* FULL-RES IMAGE */}
+    <img 
+      src={images[selectedImageIndex].full} 
+      className="max-w-full max-h-[70vh] object-contain shadow-2xl" 
+      alt="Full size view" 
+    />
+
+{/* CONTROLS ROW - Ergonomic & Feature Rich */}
+<div className="absolute bottom-10 flex items-center justify-between w-full max-w-[550px] px-4">
+  
+  {/* SAFE ZONE (LEFT) */}
+  <button 
+    onClick={() => handleDelete(images[selectedImageIndex].full)}
+    className="bg-black border-2 border-[#d0006f] text-white rounded-[14px] px-5 py-3.5 font-bold text-[10px] tracking-widest uppercase active:scale-[0.96] transition-all shadow-lg"
+  >
+    Delete
+  </button>
+
+  {/* ACTION ZONE (RIGHT) */}
+  <div className="flex gap-2">
+    <button 
+      className="bg-[#d0006f] active:scale-[0.96] text-white rounded-[14px] px-5 py-3.5 font-bold text-xs shadow-lg transition-all"
+      onClick={() => setSelectedImageIndex((prev) => (prev! > 0 ? prev! - 1 : images.length - 1))}
+    >
+      PREV
+    </button>
+    <button 
+      className="bg-[#d0006f] active:scale-[0.96] text-white rounded-[14px] px-5 py-3.5 font-bold text-xs shadow-lg transition-all"
+      onClick={() => setSelectedImageIndex((prev) => (prev! < images.length - 1 ? prev! + 1 : 0))}
+    >
+      NEXT
+    </button>
+    
+    {/* NEW DOWNLOAD BUTTON */}
+    <button 
+      onClick={() => handleDownload(images[selectedImageIndex].full)}
+      className="bg-[#d0006f] active:scale-[0.96] text-white rounded-[14px] px-4 py-3.5 shadow-lg transition-all flex items-center justify-center"
+      title="Download Original"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M7.5 12l4.5 4.5m0 0 4.5-4.5M12 3v13.5" />
+      </svg>
+    </button>
+  </div>
+
+
+
+</div></div>
+)}
     </div>
   );
 }
