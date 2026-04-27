@@ -237,53 +237,61 @@ export default function Home() {
         </div>
       </div>
 
-      {selectedImageIndex !== null && (
-        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4">
-          <button 
-            className="absolute top-12 right-6 text-white text-4xl p-2 z-[110]"
-            onClick={() => setSelectedImageIndex(null)}
-          >
-            &times;
-          </button>
-          
-          <img 
-            src={images[selectedImageIndex].full} 
-            className="max-w-full max-h-[75vh] object-contain shadow-2xl rounded-lg" 
-            alt="Full size view" 
-          />
+   {/* FULL-SCREEN IMAGE VIEWER */}
+{selectedImageIndex !== null && (
+  <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4">
+    {/* CLOSE BUTTON */}
+    <button 
+      className="absolute top-12 right-6 text-white text-4xl p-2 z-[110]"
+      onClick={() => setSelectedImageIndex(null)}
+    >
+      &times;
+    </button>
+    
+    {/* FULL-RES IMAGE SWAPPED TO THUMBNAIL FOR SPEED */}
+    <img 
+      src={images[selectedImageIndex].thumb} // Changed from .full to .thumb
+      className="max-w-full max-h-[75vh] object-contain shadow-2xl rounded-lg" 
+      alt="Preview view" 
+    />
 
-          <div className="absolute bottom-10 flex items-center justify-between w-full max-w-[500px] px-6">
-            <button 
-              onClick={() => handleDelete(images[selectedImageIndex].full)}
-              className="bg-transparent border border-white/20 text-white/40 rounded-xl px-4 py-3 text-[10px] tracking-widest uppercase hover:text-white hover:border-white transition-all"
-            >
-              Delete
-            </button>
+    <div className="absolute bottom-10 flex items-center justify-between w-full max-w-[500px] px-6">
+      {/* DELETE BUTTON */}
+      <button 
+        onClick={() => handleDelete(images[selectedImageIndex].full)}
+        className="bg-transparent border border-white/20 text-white/40 rounded-xl px-4 py-3 text-[10px] tracking-widest uppercase hover:text-white hover:border-white transition-all"
+      >
+        Delete
+      </button>
 
-            <div className="flex gap-2">
-              <button 
-                className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-5 py-3 font-bold text-xs transition-all"
-                onClick={() => setSelectedImageIndex((prev) => (prev! > 0 ? prev! - 1 : images.length - 1))}
-              >
-                PREV
-              </button>
-              <button 
-                className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-5 py-3 font-bold text-xs transition-all"
-                onClick={() => setSelectedImageIndex((prev) => (prev! < images.length - 1 ? prev! + 1 : 0))}
-              >
-                NEXT
-              </button>
-              <button 
-                onClick={() => handleDownload(images[selectedImageIndex].full)}
-                className="bg-[#d0006f] hover:bg-[#e6007a] text-white rounded-xl px-4 py-3 shadow-lg transition-all"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M7.5 12l4.5 4.5m0 0 4.5-4.5M12 3v13.5" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+      <div className="flex gap-2">
+        <button 
+          className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-5 py-3 font-bold text-xs transition-all"
+          onClick={() => setSelectedImageIndex((prev) => (prev! > 0 ? prev! - 1 : images.length - 1))}
+        >
+          PREV
+        </button>
+        <button 
+          className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-5 py-3 font-bold text-xs transition-all"
+          onClick={() => setSelectedImageIndex((prev) => (prev! < images.length - 1 ? prev! + 1 : 0))}
+        >
+          NEXT
+        </button>
+        
+        {/* DOWNLOAD BUTTON (Still points to .full so they get the high-res file) */}
+        <button 
+          onClick={() => handleDownload(images[selectedImageIndex].full)}
+          className="bg-[#d0006f] hover:bg-[#e6007a] text-white rounded-xl px-4 py-3 shadow-lg transition-all"
+          title="Download High-Res Original"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M7.5 12l4.5 4.5m0 0 4.5-4.5M12 3v13.5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
       )}
     </div>
   );
