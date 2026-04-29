@@ -7,19 +7,20 @@ export async function POST(request: Request) {
   try {
     const { guestId, guestName, guestEmail, attending } = await request.json();
 
-    // The destination URL for the "Update My RSVP" button
     const rsvpUrl = `https://destinyandstace.com/rsvp?id=${guestId}`;
-    
-    // The logo URL - Make sure this exists at /public/img/logo.png
     const logoUrl = "https://destinyandstace.com/img/logo.png";
+
+    // Logic to determine if this is a first-time invite or a confirmation receipt
+    const isInitialInvite = attending === undefined || attending === null;
 
     const data = await resend.emails.send({
       from: 'The Hamilton Wedding <hello@destinyandstace.com>',
       to: [guestEmail],
-      cc: ['stacehamilton@gmail.com'], // Update this to your real notification email
-      subject: attending 
-        ? "We can't wait to celebrate with you!" 
-        : "We'll miss you at the wedding!",
+      // Only CC yourself on actual RSVP responses, not the initial blast
+      cc: isInitialInvite ? [] : ['stacehamilton@gmail.com'], 
+      subject: isInitialInvite 
+        ? "You're Invited: The Hamilton Wedding" 
+        : (attending ? "We can't wait to celebrate with you!" : "We'll miss you at the wedding!"),
       html: `
 <!DOCTYPE html>
 <html>
@@ -51,24 +52,29 @@ export async function POST(request: Request) {
                 September 5, 2026 • Campio Ritchie
               </p>
 
+              ${!isInitialInvite ? `
               <div style="margin: 25px 0; padding: 15px; border-top: 1px solid #333; border-bottom: 1px solid #333;">
                 <p style="color: #d0006f; font-size: 14px; font-weight: 900; text-transform: uppercase; margin: 0;">
                   RSVP Status: ${attending ? "✅ Attending" : "❌ Declined"}
                 </p>
               </div>
+              ` : ''}
               
               <p style="color: #4d4d4d; font-size: 15px; line-height: 1.6; margin-bottom: 30px;">
                 Hi ${guestName},<br><br>
-                ${attending 
-                  ? "We are so excited to have you join us for our intimate celebration! We'll keep you updated with more details as we get closer to the big day." 
-                  : "We're sorry you can't make it, but we appreciate you letting us know. We'll find another time to celebrate with you soon!"}
+                ${isInitialInvite 
+                  ? "We would love for you to join us for our intimate celebration. Please confirm your attendance via the link below."
+                  : (attending 
+                      ? "We are so excited to have you join us for our intimate celebration! We'll keep you updated with more details as we get closer." 
+                      : "We're sorry you can't make it, but we appreciate you letting us know. We'll find another time to celebrate soon!")
+                }
               </p>
 
               <table border="0" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center" bgcolor="#d0006f" style="border-radius: 16px;">
                     <a href="${rsvpUrl}" target="_blank" style="padding: 18px 36px; font-size: 12px; color: #ffffff; font-weight: 900; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; display: inline-block;">
-                      Update My RSVP
+                      ${isInitialInvite ? "Confirm RSVP" : "Update My RSVP"}
                     </a>
                   </td>
                 </tr>
