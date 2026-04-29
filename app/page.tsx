@@ -62,6 +62,7 @@ export default function Home() {
 
         {/* Info Accordion */}
         <div className="w-full bg-white/5 border border-white/10 rounded-[2rem] p-6 mb-8 text-left backdrop-blur-xl relative z-50">
+       
           <div className="border-b border-white/5">
             <button onClick={() => setOpenSection(openSection === 'vibe' ? '' : 'vibe')} className="w-full py-5 flex justify-between items-center text-[12px] font-black uppercase tracking-[0.2em] opacity-90">
               The Vibe <span className="text-[#d0006f] text-lg">{openSection === 'vibe' ? '−' : '+'}</span>
@@ -82,6 +83,14 @@ export default function Home() {
             </button>
             {openSection === 'rsvp' && <div className="pb-6 text-xs leading-relaxed opacity-100">RSVP via your personal email link.</div>}
           </div>
+
+             <div className="border-b border-white/5">
+            <button onClick={() => setOpenSection(openSection === 'event' ? '' : 'event')} className="w-full py-5 flex justify-between items-center text-[12px] font-black uppercase tracking-[0.2em] opacity-90">
+              Accomodations<span className="text-[#d0006f] text-lg">{openSection === 'event' ? '−' : '+'}</span>
+            </button>
+            {openSection === 'event' && <div className="pb-6 text-xs leading-relaxed opacity-100">Place reccommended Accomodations here.</div>}
+          </div>
+         
         </div>
 
         {/* Main Action */}
