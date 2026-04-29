@@ -47,12 +47,12 @@ export default function Slideshow() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // 3. Auto-cycle every 60 seconds
+  // 3. Auto-cycle every 15 seconds
   useEffect(() => {
     if (photos.length === 0) return;
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % photos.length);
-    }, 60000);
+    }, 15000);
     return () => clearInterval(timer);
   }, [photos]);
 
