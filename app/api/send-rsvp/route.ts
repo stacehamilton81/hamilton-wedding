@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     const data = await resend.emails.send({
       from: 'The Hamilton Wedding <hello@destinyandstace.com>',
       to: [guestEmail],
-      cc: ['stace@example.com'], // Update this to your real notification email
+      cc: ['stacehamilton@gmail.com'], // Update this to your real notification email
       subject: attending 
         ? "We can't wait to celebrate with you!" 
         : "We'll miss you at the wedding!",
