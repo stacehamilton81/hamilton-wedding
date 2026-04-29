@@ -14,7 +14,7 @@ const sans = Montserrat({
 interface Guest {
   id: string;
   guest_name: string;
-  guest_email: string; // Ensure this is in your Supabase table
+  email: string; // Corrected to match your Supabase column
   is_attending: boolean | null;
   dietary_notes: string | null;
   song_request: string | null;
@@ -35,7 +35,6 @@ function RsvpContent() {
   }, [id]);
 
   async function fetchGuest(uuid: string) {
-    // Note: Assuming your table name is 'rsvps' based on your code
     const { data } = await supabase.from('rsvps').select('*').eq('id', uuid).single();
     if (data) setGuest(data);
     setLoading(false);
@@ -48,8 +47,9 @@ function RsvpContent() {
     const formData = new FormData(e.currentTarget);
     const attendingValue = formData.get('attending') === 'true';
     
+    // updates keys must match Supabase column names exactly
     const updates = {
-      is_attending: attendingValue,
+      is_attending: attendingValue, 
       dietary_notes: formData.get('dietary') as string,
       song_request: formData.get('song') as string,
       last_updated: new Date().toISOString(),
@@ -69,7 +69,7 @@ function RsvpContent() {
           body: JSON.stringify({
             guestId: id,
             guestName: guest.guest_name,
-            guestEmail: guest.guest_email,
+            guestEmail: guest.email, // FIXED: Now uses guest.email
             attending: attendingValue
           }),
         });
@@ -79,6 +79,7 @@ function RsvpContent() {
       
       setSubmitted(true);
     } else {
+      console.error("Supabase Error:", dbError);
       alert("There was an error updating your RSVP. Please try again.");
     }
     
@@ -119,7 +120,7 @@ function RsvpContent() {
         <div className="flex flex-col items-center mb-10 text-center">
           <img
             src="img/happy_couple.png"
-            alt="Profile"
+            alt="Destiny & Stace"
             className="w-32 h-32 rounded-full border-4 border-[#d0006f] shadow-2xl mb-6 object-cover"
           />
           <h1 className="text-white text-[32px] font-black tracking-tight leading-tight uppercase">
@@ -133,7 +134,7 @@ function RsvpContent() {
             <div className="text-center py-10">
               <div className="text-[#d0006f] text-5xl mb-4">♥</div>
               <h2 className="text-white text-2xl font-bold mb-2">Thanks, {guest.guest_name}!</h2>
-              <p className="text-white/60">We've updated your response and sent a confirmation email to {guest.guest_email}.</p>
+              <p className="text-white/60">We've updated your response and sent a confirmation email to {guest.email}.</p>
               <button 
                 onClick={() => window.location.href = '/photos'}
                 className="mt-8 bg-[#d0006f] text-white rounded-2xl py-4 px-8 font-black uppercase tracking-widest text-xs hover:bg-[#e6007a] transition-all"
