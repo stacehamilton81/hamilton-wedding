@@ -176,7 +176,7 @@ const handleDelete = async (fullUrl: string) => {
   const fileName = fullUrl.split('/').pop()?.split('?')[0];
   if (!fileName) return;
 
-  const adminPass = "Hamilton2026"; 
+  const adminPass = "3639"; 
   const userInput = prompt("To delete, enter the Admin Password.");
 
   if (userInput === adminPass || userInput === "") {
