@@ -1,13 +1,24 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Use the Service Role Key here to bypass RLS for this admin task
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! 
-);
+// Get keys without the "!" to prevent immediate crashing
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// Only initialize if both keys are present
+const supabase = (supabaseUrl && supabaseServiceKey) 
+  ? createClient(supabaseUrl, supabaseServiceKey) 
+  : null;
 
 export async function GET() {
+  // If supabase is null, it means the Env Vars aren't set up in Vercel yet
+  if (!supabase) {
+    return NextResponse.json(
+      { error: "Supabase keys are missing in environment variables." }, 
+      { status: 500 }
+    );
+  }
+
   try {
     // 1. Get everyone who hasn't been invited yet
     const { data: guests, error } = await supabase
@@ -22,14 +33,14 @@ export async function GET() {
 
     for (const guest of guests) {
       // 2. Call your existing smart route
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/send-rsvp`, {
+      // Using your hardcoded domain for maximum reliability during the blast
+      const res = await fetch(`https://destinyandstace.com/api/send-rsvp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           guestId: guest.id,
           guestName: guest.guest_name,
           guestEmail: guest.guest_email,
-          // We leave 'attending' out so it triggers the "Initial Invite" logic
         }),
       });
 
