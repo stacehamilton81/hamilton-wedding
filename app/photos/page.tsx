@@ -93,83 +93,120 @@ export default function Home() {
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  const files = e.target.files;
+  if (!files || files.length === 0) return;
 
-    const deviceId = getDeviceId();
-    setIsUploading(true);
+  const deviceId = getDeviceId();
+  setIsUploading(true);
+  console.log("🚀 Starting upload process for", files.length, "files");
 
-    try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+  try {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-        // 1. Upload Original
-        const { error: fullError } = await supabase.storage
-          .from('WEDDING-PHOTOS')
-          .upload(`originals/${fileName}`, file, {
-            metadata: { owner: deviceId }
-          });
-        if (fullError) throw fullError;
+      // CHECKPOINT 1: Storage Upload
+      console.log(`[${i+1}/${files.length}] Uploading original to storage...`);
+      const { error: fullError } = await supabase.storage
+        .from('WEDDING-PHOTOS')
+        .upload(`originals/${fileName}`, file, {
+          metadata: { owner: deviceId }
+        });
+      
+      if (fullError) {
+        console.error("❌ Storage Error (Original):", fullError);
+        throw fullError;
+      }
 
-        // 2. Compress and Upload Thumbnail
-        const options = {
-          maxSizeMB: 0.1, 
-          maxWidthOrHeight: 800,
-          useWebWorker: true,
-        };
-        const compressedBlob = await imageCompression(file, options);
-        
-        const { error: thumbError } = await supabase.storage
-          .from('WEDDING-PHOTOS')
-          .upload(`thumbs/${fileName}`, compressedBlob, {
-            metadata: { owner: deviceId }
-          });
-        if (thumbError) throw thumbError;
+      // CHECKPOINT 2: Compression
+      console.log(`[${i+1}/${files.length}] Compressing thumbnail...`);
+      const options = { maxSizeMB: 0.1, maxWidthOrHeight: 800, useWebWorker: true };
+      const compressedBlob = await imageCompression(file, options);
 
-        // 3. Log to Database for Slideshow
-        const { error: dbError } = await supabase
-          .from('wedding_photos')
-          .insert([{ file_path: `originals/${fileName}` }]);
-        
-        if (dbError) console.error("Database log failed:", dbError.message);
+      // CHECKPOINT 3: Thumbnail Upload
+      console.log(`[${i+1}/${files.length}] Uploading thumbnail to storage...`);
+      const { error: thumbError } = await supabase.storage
+        .from('WEDDING-PHOTOS')
+        .upload(`thumbs/${fileName}`, compressedBlob, {
+          metadata: { owner: deviceId }
+        });
+      
+      if (thumbError) {
+        console.error("❌ Storage Error (Thumb):", thumbError);
+        throw thumbError;
+      }
+
+      // CHECKPOINT 4: Database Insert
+      console.log(`[${i+1}/${files.length}] Logging to database...`);
+      const { error: dbError } = await supabase
+        .from('wedding_photos')
+        .insert([{ file_path: `originals/${fileName}` }]);
+      
+      if (dbError) {
+        console.error("❌ Database Error:", dbError);
+        // We throw here to stop the loop if the DB log fails
+        throw dbError; 
       }
       
-      setTimeout(async () => {
-        await fetchImages();
-        setIsUploading(false);
-      }, 1000);
+      console.log(`✅ File ${i+1} completed successfully.`);
+    }
 
-    } catch (error: any) {
-      console.error('Upload error:', error);
-      alert("Upload failed: " + error.message);
+    setTimeout(async () => {
+      await fetchImages();
       setIsUploading(false);
-    } finally {
-      e.target.value = '';
+    }, 1000);
+
+  } catch (error: any) {
+    // This will now catch and print the actual error object from Supabase
+    console.error('Final Catch Triggered:', error);
+    
+    // If the error object is empty, let's try to find a message elsewhere
+    const errorMessage = error.message || error.error_description || "Unknown Error";
+    alert("Upload failed: " + errorMessage);
+    
+    setIsUploading(false);
+  } finally {
+    e.target.value = '';
+  }
+};
+
+const handleDelete = async (fullUrl: string) => {
+  // Extract the filename and the path needed for the DB query
+  const fileName = fullUrl.split('/').pop()?.split('?')[0];
+  if (!fileName) return;
+
+  const adminPass = "Hamilton2026"; 
+  const userInput = prompt("To delete, enter the Admin Password.");
+
+  if (userInput === adminPass || userInput === "") {
+    // 1. Delete from Storage (Original and Thumb)
+    const { error: storageError } = await supabase.storage
+      .from('WEDDING-PHOTOS')
+      .remove([`originals/${fileName}`, `thumbs/${fileName}`]);
+
+    if (storageError) {
+      console.error("Storage delete failed:", storageError);
+      alert("Failed to remove files from storage.");
+      return;
     }
-  };
 
-  const handleDelete = async (fullUrl: string) => {
-    const fileName = fullUrl.split('/').pop()?.split('?')[0];
-    if (!fileName) return;
+    // 2. NEW: Delete the record from the database table
+    const { error: dbError } = await supabase
+      .from('wedding_photos')
+      .delete()
+      .match({ file_path: `originals/${fileName}` });
 
-    const adminPass = "Hamilton2026"; 
-    const userInput = prompt("To delete, enter the Admin Password.");
-
-    if (userInput === adminPass || userInput === "") {
-      const { error } = await supabase.storage
-        .from('WEDDING-PHOTOS')
-        .remove([`originals/${fileName}`, `thumbs/${fileName}`]);
-
-      if (error) {
-        alert("Delete failed.");
-      } else {
-        setSelectedImageIndex(null);
-        fetchImages();
-      }
+    if (dbError) {
+      console.error("Database row delete failed:", dbError);
+      alert("File removed from storage, but remained in the database.");
+    } else {
+      // Success!
+      setSelectedImageIndex(null);
+      fetchImages();
     }
-  };
+  }
+};
 
   return (
     <div 

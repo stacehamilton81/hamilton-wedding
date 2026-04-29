@@ -59,7 +59,7 @@ export default function Home() {
                 <div className="absolute w-full h-[1px] bg-black/40 top-1/2"></div>
                 <span className="text-3xl font-black text-[#d0006f]">{val}</span>
               </div>
-              <span className="text-[9px] uppercase tracking-widest font-bold mt-2 opacity-30">{label}</span>
+              <span className="text-[9px] uppercase tracking-widest font-bold mt-2 opacity-50">{label}</span>
             </div>
           ))}
         </div>
@@ -73,17 +73,17 @@ export default function Home() {
         {/* Info Accordion - Simple Logic */}
         <div className="w-full bg-white/5 border border-white/10 rounded-[2rem] p-6 mb-8 text-left backdrop-blur-xl relative z-50">
           <div className="border-b border-white/5">
-            <button onClick={() => setOpenSection(openSection === 'vibe' ? '' : 'vibe')} className="w-full py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] opacity-60">
+            <button onClick={() => setOpenSection(openSection === 'vibe' ? '' : 'vibe')} className="w-full py-5 flex justify-between items-center text-[12px] font-black uppercase tracking-[0.2em] opacity-90">
               The Vibe <span className="text-[#d0006f] text-lg">{openSection === 'vibe' ? '−' : '+'}</span>
             </button>
-            {openSection === 'vibe' && <div className="pb-6 text-xs leading-relaxed opacity-80">Cocktail attire. Industrial-modern energy.</div>}
+            {openSection === 'vibe' && <div className="pb-6 text-xs leading-relaxed opacity-100">Cocktail attire. Industrial-modern energy.</div>}
           </div>
 
           <div className="border-b border-white/5">
-            <button onClick={() => setOpenSection(openSection === 'gift' ? '' : 'gift')} className="w-full py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] opacity-60">
+            <button onClick={() => setOpenSection(openSection === 'gift' ? '' : 'gift')} className="w-full py-5 flex justify-between items-center text-[12px] font-black uppercase tracking-[0.2em] opacity-90">
               Gifts <span className="text-[#d0006f] text-lg">{openSection === 'gift' ? '−' : '+'}</span>
             </button>
-            {openSection === 'gift' && <div className="pb-6 text-xs leading-relaxed opacity-80">No gifts please! Your presence is our present.</div>}
+            {openSection === 'gift' && <div className="pb-6 text-xs leading-relaxed opacity-100">No gifts please! Your presence is our present.</div>}
           </div>
         </div>
 
