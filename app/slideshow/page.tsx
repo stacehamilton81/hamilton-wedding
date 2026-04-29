@@ -8,7 +8,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const BUCKET_NAME = 'your_bucket_name'; // Replace with your actual bucket name
+const BUCKET_NAME = 'WEDDING-PHOTOS'; // Replace with your actual bucket name
 
 export default function Slideshow() {
   const [photos, setPhotos] = useState<any[]>([]);
