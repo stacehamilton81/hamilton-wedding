@@ -136,10 +136,10 @@ function RsvpContent() {
               <h2 className="text-white text-2xl font-bold mb-2">Thanks, {guest.guest_name}!</h2>
               <p className="text-white/60">We've updated your response and sent a confirmation email to {guest.email}.</p>
               <button 
-                onClick={() => window.location.href = '/photos'}
+                onClick={() => window.location.href = '/'}
                 className="mt-8 bg-[#d0006f] text-white rounded-2xl py-4 px-8 font-black uppercase tracking-widest text-xs hover:bg-[#e6007a] transition-all"
               >
-                View Photo Wall
+                Event Details
               </button>
             </div>
           ) : (
