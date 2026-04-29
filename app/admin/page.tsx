@@ -16,7 +16,7 @@ export default function AdminPage() {
   // Simple password check - Update 'yourpassword' to whatever you want
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'staceanddestiny2026') setIsAuthorized(true);
+    if (password === '3639') setIsAuthorized(true);
     else alert('Wrong password');
   };
 
