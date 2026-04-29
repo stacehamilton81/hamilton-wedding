@@ -40,7 +40,7 @@ export async function GET() {
         body: JSON.stringify({
           guestId: guest.id,
           guestName: guest.guest_name,
-          guestEmail: guest.guest_email,
+          guestEmail: guest.email,
         }),
       });
 
