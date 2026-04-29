@@ -213,26 +213,28 @@ export default function Home() {
           </h1>
         </div>
 
-        <div className="px-6 pb-12 flex justify-center">
-          <label className={`relative flex items-center justify-center gap-3 rounded-2xl py-4 px-10 shadow-2xl transition-all cursor-pointer w-full max-w-[300px]
-            ${isUploading 
-              ? 'bg-pink-800 opacity-80' 
-              : 'bg-[#d0006f] hover:bg-[#e6007a] active:scale-95' 
-            }`}>
-            <input type="file" accept="image/*" multiple className="hidden" disabled={isUploading} onChange={handleFileUpload} />
-            {isUploading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-6 h-6">
-                <path d="M12 9a3.75 3.75 0 1 0 0 7.5A3.75 3.75 0 0 0 12 9Z" />
-                <path fillRule="evenodd" d="M9.344 3.071a49.52 49.52 0 0 1 5.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 0 1-3 3h-15a3 3 0 0 1-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 0 0 1.11-.71l.822-1.315a2.942 2.942 0 0 1 2.332-1.39ZM6.75 12.75a5.25 5.25 0 1 1 10.5 0 5.25 5.25 0 0 1-10.5 0Zm12-1.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clipRule="evenodd" />
-              </svg>
-            )}
-            <span className="text-lg font-bold tracking-tight uppercase">
-              {isUploading ? 'Uploading...' : 'Share Photos'}
-            </span>
-          </label>
-        </div>
+ <div className="px-6 pb-12 flex justify-center">
+  <label className={`relative flex items-center justify-center gap-3 rounded-2xl py-5 px-10 shadow-lg transition-all cursor-pointer w-full max-w-[300px] active:scale-95
+    ${isUploading 
+      ? 'bg-pink-800 opacity-80' 
+      : 'bg-[#d0006f] hover:bg-[#e6007a]' 
+    }`}>
+    <input type="file" accept="image/*" multiple className="hidden" disabled={isUploading} onChange={handleFileUpload} />
+    
+    {isUploading ? (
+      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+    ) : (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-4 h-4">
+        <path d="M12 9a3.75 3.75 0 1 0 0 7.5A3.75 3.75 0 0 0 12 9Z" />
+        <path fillRule="evenodd" d="M9.344 3.071a49.52 49.52 0 0 1 5.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 0 1-3 3h-15a3 3 0 0 1-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 0 0 1.11-.71l.822-1.315a2.942 2.942 0 0 1 2.332-1.39ZM6.75 12.75a5.25 5.25 0 1 1 10.5 0 5.25 5.25 0 0 1-10.5 0Zm12-1.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clipRule="evenodd" />
+      </svg>
+    )}
+
+    <span className={`${sans.className} font-black uppercase tracking-widest text-xs text-white`}>
+      {isUploading ? 'Uploading...' : 'Share Photos'}
+    </span>
+  </label>
+</div>
 
         <div className="w-full mt-auto bg-black/70 backdrop-blur-2xl rounded-t-[3rem] p-4 pt-8 border-t border-white/10 shadow-2xl">
           <div className="flex justify-between items-center px-4 mb-6 text-white/50 text-[10px] uppercase tracking-[0.2em] font-black">
