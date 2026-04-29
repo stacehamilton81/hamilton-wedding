@@ -17,13 +17,10 @@ export default function Home() {
   const [openSection, setOpenSection] = useState("");
 
   useEffect(() => {
-    // Standard ISO string
     const target = new Date("2026-09-05T17:00:00").getTime();
-
     const timer = setInterval(() => {
       const now = new Date().getTime();
       const diff = target - now;
-
       if (diff > 0) {
         setDays(Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0'));
         setHrs(Math.floor((diff / (1000 * 60 * 60)) % 24).toString().padStart(2, '0'));
@@ -31,14 +28,13 @@ export default function Home() {
         setSec(Math.floor((diff / 1000) % 60).toString().padStart(2, '0'));
       }
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
 
   return (
     <main className={`min-h-screen bg-[#111] text-white relative flex flex-col items-center p-6 py-20 ${sans.className}`}>
       
-      {/* Background Decor - pointer-events-none is crucial */}
+      {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#d0006f] opacity-20 blur-[100px] rounded-full"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#d0006f] opacity-10 blur-[100px] rounded-full"></div>
@@ -51,7 +47,7 @@ export default function Home() {
         <p className="text-white/80 text-sm tracking-[0.3em] uppercase mb-10 font-light">Sept 5, 2026 • 5pm-10pm
         <br></br>Campio Ritchie</p>
 
-        {/* Timer - If this is 00, JS is not running */}
+        {/* Timer */}
         <div className="flex gap-4 mb-12">
           {[["Days", days], ["Hrs", hrs], ["Min", min], ["Sec", sec]].map(([label, val]) => (
             <div key={label} className="flex flex-col items-center">
@@ -64,10 +60,7 @@ export default function Home() {
           ))}
         </div>
 
-       
-
-
-        {/* Info Accordion - Simple Logic */}
+        {/* Info Accordion */}
         <div className="w-full bg-white/5 border border-white/10 rounded-[2rem] p-6 mb-8 text-left backdrop-blur-xl relative z-50">
           <div className="border-b border-white/5">
             <button onClick={() => setOpenSection(openSection === 'vibe' ? '' : 'vibe')} className="w-full py-5 flex justify-between items-center text-[12px] font-black uppercase tracking-[0.2em] opacity-90">
@@ -83,30 +76,27 @@ export default function Home() {
             {openSection === 'gift' && <div className="pb-6 text-xs leading-relaxed opacity-100">No gifts please! Your presence is our present.</div>}
           </div>
 
-            <div className="border-b border-white/5">
+          <div className="border-b border-white/5">
             <button onClick={() => setOpenSection(openSection === 'rsvp' ? '' : 'rsvp')} className="w-full py-5 flex justify-between items-center text-[12px] font-black uppercase tracking-[0.2em] opacity-90">
               RSVP <span className="text-[#d0006f] text-lg">{openSection === 'rsvp' ? '−' : '+'}</span>
             </button>
             {openSection === 'rsvp' && <div className="pb-6 text-xs leading-relaxed opacity-100">RSVP via your personal email link.</div>}
           </div>
-
         </div>
 
-  {/* Main Action */}
+        {/* Main Action */}
         <div className="w-full mb-12 relative z-50">
           <Link href="/photos" className="block w-full bg-[#d0006f] py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-transform">
             Photo Wall
           </Link>
-        
         </div>
 
-
-        {/* Simplified Venue Section (No Iframe) */}
+        {/* Venue Section */}
         <div className="w-full bg-white/5 border border-white/10 rounded-[2rem] p-8 text-center backdrop-blur-xl relative z-50">
           <span className="text-[10px] font-black uppercase opacity-40 block mb-4">The Venue</span>
           <h2 className="text-lg font-black uppercase mb-4">Campio Ritchie Brewing Co.</h2>
           <a 
-            href="https://www.google.com/maps/place/campio+ritchie/data=!4m2!3m1!1s0x53a023ef693827f7:0xebd98cddfa69a722?sa=X&ved=1t:242&ictx=111" 
+            href="https://maps.google.com/?q=9570+76+Ave+NW+Edmonton+AB+T6C+0K2" 
             target="_blank" 
             className="inline-block bg-white/10 border border-white/20 px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95"
           >
@@ -114,6 +104,33 @@ export default function Home() {
           </a>
           <p className="text-[9px] mt-6 opacity-40 font-bold uppercase tracking-widest">9570 76 Ave NW, Edmonton, AB T6C 0K2</p>
         </div>
+
+        {/* --- ADDED: ADMIN FOOTER SECTION --- */}
+  {/* --- UPDATED: ADMIN FOOTER SECTION --- */}
+        <footer className="w-full mt-32 pb-16 flex flex-col items-center justify-center gap-6 relative z-50">
+          <div className="w-16 h-[1px] bg-white/20 mb-2"></div>
+          
+          <Link 
+            href="/admin" 
+            className="flex items-center gap-3 text-white/30 hover:text-[#d0006f] transition-all group font-black uppercase tracking-[0.4em] text-[11px]"
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              strokeWidth={2.5} 
+              stroke="currentColor" 
+              className="w-4 h-4 opacity-40 group-hover:opacity-100 group-hover:scale-110 transition-all"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+            Admin Access
+          </Link>
+          
+          <p className="text-white/10 text-[9px] uppercase tracking-[0.5em] font-light">
+            Destiny & Stace • 2026
+          </p>
+        </footer>
 
       </div>
     </main>
