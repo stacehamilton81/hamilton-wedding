@@ -14,6 +14,7 @@ const sans = Montserrat({
 interface Guest {
   id: string;
   guest_name: string;
+  guest_email: string; // Ensure this is in your Supabase table
   is_attending: boolean | null;
   dietary_notes: string | null;
   song_request: string | null;
@@ -26,6 +27,7 @@ function RsvpContent() {
   const [guest, setGuest] = useState<Guest | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitted, setSubmitted] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   useEffect(() => {
     if (id) fetchGuest(id);
@@ -33,6 +35,7 @@ function RsvpContent() {
   }, [id]);
 
   async function fetchGuest(uuid: string) {
+    // Note: Assuming your table name is 'rsvps' based on your code
     const { data } = await supabase.from('rsvps').select('*').eq('id', uuid).single();
     if (data) setGuest(data);
     setLoading(false);
@@ -40,15 +43,46 @@ function RsvpContent() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!guest || !id) return;
+
     const formData = new FormData(e.currentTarget);
+    const attendingValue = formData.get('attending') === 'true';
+    
     const updates = {
-      is_attending: formData.get('attending') === 'true',
+      is_attending: attendingValue,
       dietary_notes: formData.get('dietary') as string,
       song_request: formData.get('song') as string,
       last_updated: new Date().toISOString(),
     };
-    const { error } = await supabase.from('rsvps').update(updates).eq('id', id);
-    if (!error) setSubmitted(true);
+
+    setIsSendingEmail(true);
+
+    // 1. Update Supabase
+    const { error: dbError } = await supabase.from('rsvps').update(updates).eq('id', id);
+    
+    if (!dbError) {
+      // 2. Trigger the Resend API Route
+      try {
+        await fetch('/api/send-rsvp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            guestId: id,
+            guestName: guest.guest_name,
+            guestEmail: guest.guest_email,
+            attending: attendingValue
+          }),
+        });
+      } catch (emailError) {
+        console.error("Email notification failed to send:", emailError);
+      }
+      
+      setSubmitted(true);
+    } else {
+      alert("There was an error updating your RSVP. Please try again.");
+    }
+    
+    setIsSendingEmail(false);
   }
 
   if (loading) return (
@@ -66,32 +100,22 @@ function RsvpContent() {
   return (
     <div className={`min-h-screen bg-[#111] relative flex flex-col items-center justify-center p-6 ${sans.className}`}>
       
-      {/* Top Navigation */}
       <div className="absolute top-8 left-8 z-50">
         <Link 
           href="/" 
           className="flex items-center gap-2 text-white/40 hover:text-[#d0006f] transition-all group font-black uppercase tracking-[0.2em] text-[10px]"
         >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            strokeWidth={3} 
-            stroke="currentColor" 
-            className="w-3 h-3 transition-transform group-hover:-translate-x-1"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-3 h-3 transition-transform group-hover:-translate-x-1">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
           </svg>
           Home
         </Link>
       </div>
 
-      {/* Background Glow Effect */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#d0006f] opacity-20 blur-[120px] rounded-full"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#d0006f] opacity-10 blur-[120px] rounded-full"></div>
 
       <div className="relative z-10 w-full max-w-[450px]">
-        {/* Header Section */}
         <div className="flex flex-col items-center mb-10 text-center">
           <img
             src="img/happy_couple.png"
@@ -104,13 +128,12 @@ function RsvpContent() {
           </h1>
         </div>
 
-        {/* The Card */}
         <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl">
           {submitted ? (
             <div className="text-center py-10">
               <div className="text-[#d0006f] text-5xl mb-4">♥</div>
               <h2 className="text-white text-2xl font-bold mb-2">Thanks, {guest.guest_name}!</h2>
-              <p className="text-white/60">We've updated your response. Can't wait to see you!</p>
+              <p className="text-white/60">We've updated your response and sent a confirmation email to {guest.guest_email}.</p>
               <button 
                 onClick={() => window.location.href = '/photos'}
                 className="mt-8 bg-[#d0006f] text-white rounded-2xl py-4 px-8 font-black uppercase tracking-widest text-xs hover:bg-[#e6007a] transition-all"
@@ -132,6 +155,7 @@ function RsvpContent() {
                   <select 
                     name="attending" 
                     required 
+                    defaultValue={guest.is_attending?.toString() || "true"}
                     className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-[#d0006f] transition-all appearance-none"
                   >
                     <option value="true" className="bg-[#111]">Yes, I'll be there!</option>
@@ -143,6 +167,7 @@ function RsvpContent() {
                   <label className="text-white/40 text-[10px] uppercase tracking-[0.2em] font-black mb-2 block">Dietary Restrictions</label>
                   <textarea 
                     name="dietary" 
+                    defaultValue={guest.dietary_notes || ""}
                     placeholder="Vegan, Gluten-free, etc." 
                     className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-[#d0006f] transition-all min-h-[100px] placeholder:text-white/20"
                   />
@@ -153,6 +178,7 @@ function RsvpContent() {
                   <input 
                     name="song" 
                     type="text" 
+                    defaultValue={guest.song_request || ""}
                     placeholder="A track to get you dancing..." 
                     className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-[#d0006f] transition-all placeholder:text-white/20"
                   />
@@ -160,9 +186,10 @@ function RsvpContent() {
 
                 <button 
                   type="submit" 
-                  className="bg-[#d0006f] hover:bg-[#e6007a] text-white rounded-2xl py-5 shadow-xl transition-all active:scale-95 font-black uppercase tracking-widest text-sm mt-4"
+                  disabled={isSendingEmail}
+                  className={`bg-[#d0006f] hover:bg-[#e6007a] text-white rounded-2xl py-5 shadow-xl transition-all active:scale-95 font-black uppercase tracking-widest text-sm mt-4 ${isSendingEmail ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  Confirm RSVP
+                  {isSendingEmail ? 'Processing...' : 'Confirm RSVP'}
                 </button>
               </form>
             </>

@@ -64,10 +64,7 @@ export default function Home() {
           ))}
         </div>
 
-       <div className="w-full mb-12 relative z-50">
-         
-          <p className="text-[11px] uppercase font-black tracking-widest mt-4">RSVP via your personal email link</p>
-        </div>
+       
 
 
         {/* Info Accordion - Simple Logic */}
@@ -85,6 +82,14 @@ export default function Home() {
             </button>
             {openSection === 'gift' && <div className="pb-6 text-xs leading-relaxed opacity-100">No gifts please! Your presence is our present.</div>}
           </div>
+
+            <div className="border-b border-white/5">
+            <button onClick={() => setOpenSection(openSection === 'rsvp' ? '' : 'rsvp')} className="w-full py-5 flex justify-between items-center text-[12px] font-black uppercase tracking-[0.2em] opacity-90">
+              RSVP <span className="text-[#d0006f] text-lg">{openSection === 'rsvp' ? '−' : '+'}</span>
+            </button>
+            {openSection === 'rsvp' && <div className="pb-6 text-xs leading-relaxed opacity-100">RSVP via your personal email link.</div>}
+          </div>
+
         </div>
 
   {/* Main Action */}
