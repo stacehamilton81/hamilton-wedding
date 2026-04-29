@@ -38,13 +38,30 @@ export default function AdminPage() {
   // Manual Override Logic
   async function toggleStatus(guestId: string, currentStatus: any, field: string) {
     const newStatus = !currentStatus;
+    
+    // Logic: If we are updating 'is_attending', we should also ensure 'invite_sent' is true
+    const payload: any = { [field]: newStatus };
+    if (field === 'is_attending' && newStatus !== null) {
+      payload.invite_sent = true;
+    }
+
     const { error } = await supabase
       .from('rsvps')
-      .update({ [field]: newStatus })
+      .update(payload)
       .eq('id', guestId);
 
     if (!error) {
-      setGuests(guests.map(g => g.id === guestId ? { ...g, [field]: newStatus } : g));
+      // Update local state for both fields if necessary
+      setGuests(guests.map(g => {
+        if (g.id === guestId) {
+          const updatedGuest = { ...g, [field]: newStatus };
+          if (field === 'is_attending' && newStatus !== null) {
+            updatedGuest.invite_sent = true;
+          }
+          return updatedGuest;
+        }
+        return g;
+      }));
     } else {
       alert("Update failed: " + error.message);
     }
