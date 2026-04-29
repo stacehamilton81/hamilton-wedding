@@ -11,14 +11,31 @@ export default function AdminPage() {
   const [password, setPassword] = useState('');
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [guests, setGuests] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
-  // Set your password here
+  // Check for existing session on mount
+  useEffect(() => {
+    const session = localStorage.getItem('wedding_admin_session');
+    if (session === 'active') {
+      setIsAuthorized(true);
+    }
+    setLoading(false);
+  }, []);
+
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === '3639') setIsAuthorized(true);
-    else alert('Wrong password');
+    if (password === '3639') {
+      localStorage.setItem('wedding_admin_session', 'active');
+      setIsAuthorized(true);
+    } else {
+      alert('Wrong password');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('wedding_admin_session');
+    setIsAuthorized(false);
   };
 
   useEffect(() => {
@@ -35,12 +52,11 @@ export default function AdminPage() {
     setLoading(false);
   }
 
-  // Manual Override Logic
   async function toggleStatus(guestId: string, currentStatus: any, field: string) {
     const newStatus = !currentStatus;
-    
-    // Logic: If we are updating 'is_attending', we should also ensure 'invite_sent' is true
     const payload: any = { [field]: newStatus };
+    
+    // Auto-mark as sent if manually changing attendance
     if (field === 'is_attending' && newStatus !== null) {
       payload.invite_sent = true;
     }
@@ -51,7 +67,6 @@ export default function AdminPage() {
       .eq('id', guestId);
 
     if (!error) {
-      // Update local state for both fields if necessary
       setGuests(guests.map(g => {
         if (g.id === guestId) {
           const updatedGuest = { ...g, [field]: newStatus };
@@ -70,7 +85,6 @@ export default function AdminPage() {
   async function triggerBroadcast() {
     const pendingCount = guests.filter(g => !g.invite_sent).length;
     if (pendingCount === 0) return alert("No pending invites to send!");
-    
     if (!confirm(`Send invites to ${pendingCount} guests?`)) return;
     
     setSending(true);
@@ -80,10 +94,12 @@ export default function AdminPage() {
       alert(`Blast complete! Processed ${data.summary?.length || 0} emails.`);
       fetchRSVPs();
     } catch (err) {
-      alert("Broadcast failed. Check Vercel logs.");
+      alert("Broadcast failed.");
     }
     setSending(false);
   }
+
+  if (loading) return <div className="min-h-screen bg-[#111]" />;
 
   if (!isAuthorized) {
     return (
@@ -107,7 +123,6 @@ export default function AdminPage() {
     <div className={`min-h-screen bg-[#111] text-white p-4 md:p-12 ${sans.className}`}>
       <div className="max-w-6xl mx-auto">
         
-        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
           <div>
             <h1 className="text-4xl font-black uppercase italic tracking-tighter">Command Center</h1>
@@ -115,21 +130,19 @@ export default function AdminPage() {
           </div>
           <button 
             onClick={triggerBroadcast}
-            disabled={sending || loading}
+            disabled={sending}
             className="bg-[#d0006f] hover:bg-[#e6007a] px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all disabled:opacity-30 shadow-[0_0_20px_rgba(208,0,111,0.3)]"
           >
             {sending ? 'Processing...' : '🚀 Trigger Email Blast'}
           </button>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
           <StatCard title="Total Guests" value={guests.length} />
           <StatCard title="Confirmed" value={guests.filter(g => g.is_attending === true).length} />
           <StatCard title="Pending Invites" value={guests.filter(g => !g.invite_sent).length} color="#d0006f" />
         </div>
 
-        {/* Guest Table */}
         <div className="bg-white/5 rounded-[2.5rem] border border-white/10 overflow-hidden backdrop-blur-md">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
@@ -185,9 +198,12 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <Link href="/" className="inline-block mt-12 text-white/20 text-[10px] uppercase tracking-[0.3em] font-black hover:text-[#d0006f] transition-all">
+        <button 
+          onClick={handleLogout}
+          className="inline-block mt-12 text-white/20 text-[10px] uppercase tracking-[0.3em] font-black hover:text-[#d0006f] transition-all"
+        >
           ← Logout & Back to Home
-        </Link>
+        </button>
       </div>
     </div>
   );
