@@ -3,7 +3,7 @@ import { Montserrat } from 'next/font/google';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../src/lib/supabaseClient';
 import imageCompression from 'browser-image-compression';
-import Link from 'next/link'; // Added for navigation
+import Link from 'next/link';
 
 const sans = Montserrat({ 
   subsets: ['latin'],
@@ -105,6 +105,7 @@ export default function Home() {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
+        // 1. Upload Original
         const { error: fullError } = await supabase.storage
           .from('WEDDING-PHOTOS')
           .upload(`originals/${fileName}`, file, {
@@ -112,6 +113,7 @@ export default function Home() {
           });
         if (fullError) throw fullError;
 
+        // 2. Compress and Upload Thumbnail
         const options = {
           maxSizeMB: 0.1, 
           maxWidthOrHeight: 800,
@@ -125,6 +127,13 @@ export default function Home() {
             metadata: { owner: deviceId }
           });
         if (thumbError) throw thumbError;
+
+        // 3. Log to Database for Slideshow
+        const { error: dbError } = await supabase
+          .from('wedding_photos')
+          .insert([{ file_path: `originals/${fileName}` }]);
+        
+        if (dbError) console.error("Database log failed:", dbError.message);
       }
       
       setTimeout(async () => {
@@ -172,7 +181,6 @@ export default function Home() {
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"></div>
 
-      {/* HOME NAVIGATION BUTTON */}
       <div className="absolute top-8 left-8 z-50">
         <Link 
           href="/" 
@@ -193,7 +201,6 @@ export default function Home() {
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen text-white">
-        
         <div className={`flex flex-col items-center p-8 text-center pt-12 ${sans.className}`}>
           <img
             src={eventDetails.profileImageUrl}
@@ -239,7 +246,6 @@ export default function Home() {
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#d0006f]"></div>
               </div>
             )}
-
             {images.map((imgSet, index) => (
               <div 
                 key={index} 
@@ -298,7 +304,6 @@ export default function Home() {
               <button 
                 onClick={() => handleDownload(images[selectedImageIndex].full)}
                 className="bg-[#d0006f] hover:bg-[#e6007a] text-white rounded-xl px-4 py-3 shadow-lg transition-all"
-                title="Download High-Res Original"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M7.5 12l4.5 4.5m0 0 4.5-4.5M12 3v13.5" />

@@ -81,16 +81,16 @@ export default function Home() {
 
           <div className="border-b border-white/5">
             <button onClick={() => setOpenSection(openSection === 'gift' ? '' : 'gift')} className="w-full py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] opacity-60">
-              Registry <span className="text-[#d0006f] text-lg">{openSection === 'gift' ? '−' : '+'}</span>
+              Gifts <span className="text-[#d0006f] text-lg">{openSection === 'gift' ? '−' : '+'}</span>
             </button>
-            {openSection === 'gift' && <div className="pb-6 text-xs leading-relaxed opacity-80">No gifts necessary! Contribution box at the venue.</div>}
+            {openSection === 'gift' && <div className="pb-6 text-xs leading-relaxed opacity-80">No gifts please! Your presence is our present.</div>}
           </div>
         </div>
 
   {/* Main Action */}
         <div className="w-full mb-12 relative z-50">
           <Link href="/photos" className="block w-full bg-[#d0006f] py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-transform">
-            Enter Photo Wall
+            Photo Wall
           </Link>
         
         </div>
