@@ -174,17 +174,7 @@ function RsvpContent() {
                   />
                 </div>
 
-                <div>
-                  <label className="text-white/40 text-[10px] uppercase tracking-[0.2em] font-black mb-2 block">Song Request</label>
-                  <input 
-                    name="song" 
-                    type="text" 
-                    defaultValue={guest.song_request || ""}
-                    placeholder="A track to get you dancing..." 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-[#d0006f] transition-all placeholder:text-white/20"
-                  />
-                </div>
-
+               
                 <button 
                   type="submit" 
                   disabled={isSendingEmail}
