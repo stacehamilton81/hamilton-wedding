@@ -67,7 +67,7 @@ export default function Home() {
             <button onClick={() => setOpenSection(openSection === 'vibe' ? '' : 'vibe')} className="w-full py-5 flex justify-between items-center text-[12px] font-black uppercase tracking-[0.2em] opacity-90">
               The Vibe <span className="text-[#d0006f] text-lg">{openSection === 'vibe' ? '−' : '+'}</span>
             </button>
-            {openSection === 'vibe' && <div className="pb-6 text-xs leading-relaxed opacity-100">Cocktail attire. Industrial-modern energy.</div>}
+            {openSection === 'vibe' && <div className="pb-6 text-xs leading-relaxed opacity-100">Dress Code: Polished & Relaxed. Think slacks, blazers, midi-dresses, and jumpsuits. We want you comfortable enough to grab a pint and celebrate, but fancy enough for the photos!</div>}
           </div>
 
           <div className="border-b border-white/5">
@@ -81,7 +81,7 @@ export default function Home() {
             <button onClick={() => setOpenSection(openSection === 'rsvp' ? '' : 'rsvp')} className="w-full py-5 flex justify-between items-center text-[12px] font-black uppercase tracking-[0.2em] opacity-90">
               RSVP <span className="text-[#d0006f] text-lg">{openSection === 'rsvp' ? '−' : '+'}</span>
             </button>
-            {openSection === 'rsvp' && <div className="pb-6 text-xs leading-relaxed opacity-100">RSVP via your personal email link.</div>}
+            {openSection === 'rsvp' && <div className="pb-6 text-xs leading-relaxed opacity-100">RSVP via your personal email link or contact us directly.</div>}
           </div>
 
              <div className="border-b border-white/5">
