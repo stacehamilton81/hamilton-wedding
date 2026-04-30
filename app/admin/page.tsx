@@ -185,7 +185,7 @@ export default function AdminPage() {
                       <div className="text-[10px] text-white/40 leading-relaxed max-w-[200px]">
                         {guest.dietary_notes || guest.song_request ? (
                           <>
-                            {guest.dietary_notes && <p>🍴 {guest.dietary_notes}</p>}
+                            {guest.dietary_notes && <p>🧒 {guest.dietary_notes}</p>}
                             {guest.song_request && <p className="mt-1">🎵 {guest.song_request}</p>}
                           </>
                         ) : '—'}

@@ -165,11 +165,11 @@ function RsvpContent() {
                 </div>
 
                 <div>
-                  <label className="text-white/40 text-[10px] uppercase tracking-[0.2em] font-black mb-2 block">Dietary Restrictions</label>
+                  <label className="text-white/40 text-[10px] uppercase tracking-[0.2em] font-black mb-2 block">Children</label>
                   <textarea 
                     name="dietary" 
                     defaultValue={guest.dietary_notes || ""}
-                    placeholder="Vegan, Gluten-free, etc." 
+                    placeholder="Indicate the name(s) of the children attending..." 
                     className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-[#d0006f] transition-all min-h-[100px] placeholder:text-white/20"
                   />
                 </div>
