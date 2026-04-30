@@ -104,8 +104,9 @@ export default function Home() {
         <div className="w-full bg-white/5 border border-white/10 rounded-[2rem] p-8 text-center backdrop-blur-xl relative z-50">
           <span className="text-[10px] font-black uppercase opacity-40 block mb-4">The Venue</span>
           <h2 className="text-lg font-black uppercase mb-4">Campio Ritchie Brewing Co.</h2>
+          <h3 className="text-lg font-black uppercase mb-4">Upper Mezzanine</h3>
           <a 
-            href="https://maps.google.com/?q=9570+76+Ave+NW+Edmonton+AB+T6C+0K2" 
+            href="https://www.google.com/maps/place/Campio+Ritchie/@53.5124446,-113.4790901,17z/data=!3m1!4b1!4m6!3m5!1s0x53a023ef693827f7:0xebd98cddfa69a722!8m2!3d53.5124446!4d-113.4765152!16s%2Fg%2F11x646v0nq?entry=ttu&g_ep=EgoyMDI2MDQyNy4wIKXMDSoASAFQAw%3D%3D" 
             target="_blank" 
             className="inline-block bg-white/10 border border-white/20 px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95"
           >
@@ -136,7 +137,7 @@ export default function Home() {
             Admin Access
           </Link>
           
-          <p className="text-white/10 text-[9px] uppercase tracking-[0.5em] font-light">
+          <p className="text-white/40 text-[9px] uppercase tracking-[0.5em] font-light">
             Destiny & Stace • 2026
           </p>
         </footer>
