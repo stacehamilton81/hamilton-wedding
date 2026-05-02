@@ -8,11 +8,14 @@ export async function POST(request: Request) {
     const { guestId, guestName, guestEmail, attending } = await request.json();
 
     const rsvpUrl = `https://destinyandstace.com/rsvp?id=${guestId}`;
+    const detailsUrl = "https://destinyandstace.com"; // Or just "https://destinyandstace.com"
     const logoUrl = "https://destinyandstace.com/img/logo.png";
 
+    
     // Logic to determine if this is a first-time invite or a confirmation receipt
     const isInitialInvite = attending === undefined || attending === null;
-
+const buttonUrl = isInitialInvite ? rsvpUrl : detailsUrl;
+const buttonText = isInitialInvite ? "Confirm RSVP" : "Check out our Website!";
     const data = await resend.emails.send({
       from: 'The Hamilton Wedding <hello@destinyandstace.com>',
       to: [guestEmail],
@@ -73,9 +76,13 @@ export async function POST(request: Request) {
               <table border="0" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center" bgcolor="#d0006f" style="border-radius: 16px;">
-                    <a href="${rsvpUrl}" target="_blank" style="padding: 18px 36px; font-size: 12px; color: #ffffff; font-weight: 900; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; display: inline-block;">
-                      ${isInitialInvite ? "Confirm RSVP" : "Update My RSVP"}
-                    </a>
+                  <a 
+  href="${isInitialInvite ? rsvpUrl : 'https://destinyandstace.com'}" 
+  target="_blank" 
+  style="padding: 18px 36px; font-size: 12px; color: #ffffff; font-weight: 900; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; display: inline-block;"
+>
+  ${isInitialInvite ? "Confirm RSVP" : "Check out our Website!"}
+</a>
                   </td>
                 </tr>
               </table>
