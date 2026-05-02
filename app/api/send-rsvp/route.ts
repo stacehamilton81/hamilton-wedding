@@ -81,7 +81,7 @@ const buttonText = isInitialInvite ? "Confirm RSVP" : "Check out our Website!";
   target="_blank" 
   style="padding: 18px 36px; font-size: 12px; color: #ffffff; font-weight: 900; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; display: inline-block;"
 >
-  ${isInitialInvite ? "Confirm RSVP" : "Check out our Website!"}
+  ${isInitialInvite ? "Confirm RSVP" : "Event Details"}
 </a>
                   </td>
                 </tr>

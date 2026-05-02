@@ -47,6 +47,7 @@ export default function Home() {
         <p className="text-white/80 text-sm tracking-[0.3em] uppercase mb-10 font-light">Sept 5, 2026 • 5pm-10pm
         <br></br>Campio Ritchie</p>
 
+
         {/* Timer */}
         <div className="flex gap-4 mb-12">
           {[["Days", days], ["Hrs", hrs], ["Min", min], ["Sec", sec]].map(([label, val]) => (
@@ -63,6 +64,13 @@ export default function Home() {
         {/* Info Accordion */}
         <div className="w-full bg-white/5 border border-white/10 rounded-[2rem] p-6 mb-8 text-left backdrop-blur-xl relative z-50">
        
+ <div className="border-b border-white/5">
+            <button onClick={() => setOpenSection(openSection === 'food' ? '' : 'food')} className="w-full py-5 flex justify-between items-center text-[12px] font-black uppercase tracking-[0.2em] opacity-90">
+              Food <span className="text-[#d0006f] text-lg">{openSection === 'food' ? '−' : '+'}</span>
+            </button>
+            {openSection === 'vibe' && <div className="pb-6 text-xs leading-relaxed opacity-100">Food and Drinks will be provided.</div>}
+          </div>
+
           <div className="border-b border-white/5">
             <button onClick={() => setOpenSection(openSection === 'vibe' ? '' : 'vibe')} className="w-full py-5 flex justify-between items-center text-[12px] font-black uppercase tracking-[0.2em] opacity-90">
               The Vibe <span className="text-[#d0006f] text-lg">{openSection === 'vibe' ? '−' : '+'}</span>
