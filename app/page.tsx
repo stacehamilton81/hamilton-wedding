@@ -68,7 +68,7 @@ export default function Home() {
             <button onClick={() => setOpenSection(openSection === 'food' ? '' : 'food')} className="w-full py-5 flex justify-between items-center text-[12px] font-black uppercase tracking-[0.2em] opacity-90">
               Food <span className="text-[#d0006f] text-lg">{openSection === 'food' ? '−' : '+'}</span>
             </button>
-            {openSection === 'vibe' && <div className="pb-6 text-xs leading-relaxed opacity-100">Food and Drinks will be provided.</div>}
+            {openSection === 'food' && <div className="pb-6 text-xs leading-relaxed opacity-100">Food and Drinks will be provided.</div>}
           </div>
 
           <div className="border-b border-white/5">
