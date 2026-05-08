@@ -45,7 +45,9 @@ export default function Home() {
 
         <h1 className="text-[40px] font-black uppercase tracking-tighter leading-none mb-2">Destiny + Stace</h1>
         <p className="text-white/80 text-sm tracking-[0.3em] uppercase mb-10 font-light">Sept 5, 2026 • 4:45pm
-        <br></br>Campio Ritchie - Upper Mezzanine</p>
+        <br></br>Campio Ritchie</p>
+         <p className="text-white/80 text-sm tracking-[0.3em] uppercase mb-9 font-light">Upper Mezzanine
+        </p>
 
 
         {/* Timer */}
