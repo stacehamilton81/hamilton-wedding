@@ -147,7 +147,7 @@ function RsvpContent() {
               <p className="text-white/60 text-sm mb-8 text-center">
                 Hello <span className="text-white font-bold">{guest.guest_name}</span>,<br /> 
                 please let us know if you can make it! <br /><br />
-                <strong>Campio Ritchie • September 5th • 5pm-10pm</strong>
+                <strong>Campio Ritchie Upper Mezzanine • September 5th • 4:45pm</strong>
               </p>
               
               <form onSubmit={handleSubmit} className="flex flex-col gap-6">
