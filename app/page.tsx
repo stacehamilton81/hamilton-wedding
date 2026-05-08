@@ -44,10 +44,10 @@ export default function Home() {
         <img src="img/happy_couple.png" alt="Couple" className="w-40 h-40 rounded-full border-8 border-[#d0006f] mb-8 object-cover" />
 
         <h1 className="text-[40px] font-black uppercase tracking-tighter leading-none mb-2">Destiny + Stace</h1>
-        <p className="text-white/80 text-sm tracking-[0.3em] uppercase mb-10 font-light">Sept 5, 2026 • 4:45pm
-        <br></br>Campio Ritchie</p>
-         <p className="text-white/80 text-sm tracking-[0.3em] uppercase mb-9 font-light">Upper Mezzanine
-        </p>
+        <p className="text-white/80 text-sm tracking-[0.3em] uppercase mb-10 font-bold">Sept 5, 2026 • 4:45pm</p>
+        <p className="text-white/80 text-sm tracking-[0.3em] uppercase mb-10 font-light">Campio Ritchie<br></br><span className="text-xs">Upper Mezzanine</span></p>
+         
+      
 
 
         {/* Timer */}
