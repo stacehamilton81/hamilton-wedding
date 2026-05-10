@@ -44,7 +44,9 @@ export default function Home() {
         <img src="img/happy_couple.png" alt="Couple" className="w-40 h-40 rounded-full border-8 border-[#d0006f] mb-8 object-cover" />
 
         <h1 className="text-[40px] font-black uppercase tracking-tighter leading-none mb-2">Destiny + Stace</h1>
-        <p className="text-white/80 text-sm tracking-[0.3em] uppercase mb-10 font-bold">Sept 5, 2026 • 4:45pm</p>
+        <p className="text-white/80 text-sm tracking-[0.3em] uppercase mb-10 font-bold">Sept 5, 2026</p>
+        <p className="text-white/80 text-sm tracking-[0.3em] uppercase mb-10 font-bold">4:30 cocktails<br></br>5:00 ceremony</p>
+          
         <p className="text-white/80 text-sm tracking-[0.3em] uppercase mb-10 font-light">Campio Ritchie<br></br><span className="text-xs">Upper Mezzanine</span></p>
          
       
@@ -96,9 +98,14 @@ export default function Home() {
 
              <div className="border-b border-white/5">
             <button onClick={() => setOpenSection(openSection === 'event' ? '' : 'event')} className="w-full py-5 flex justify-between items-center text-[12px] font-black uppercase tracking-[0.2em] opacity-90">
-              Accomodations<span className="text-[#d0006f] text-lg">{openSection === 'event' ? '−' : '+'}</span>
+              Accommodations<span className="text-[#d0006f] text-lg">{openSection === 'event' ? '−' : '+'}</span>
             </button>
-            {openSection === 'event' && <div className="pb-6 text-xs leading-relaxed opacity-100">Place reccommended Accomodations here.</div>}
+            {openSection === 'event' && <div className="pb-6 text-xs leading-relaxed opacity-100">
+          <a target='_blank' href='https://www.google.com/maps/place/Metterra+Hotel+on+Whyte/@53.5182933,-113.4997771,17z/data=!3m1!4b1!4m9!3m8!1s0x53a0220ff7a1d43d:0x88658b2538d25c0d!5m2!4m1!1i2!8m2!3d53.5182933!4d-113.4997771!16s%2Fg%2F1tdvpfdj?entry=ttu&g_ep=EgoyMDI2MDUwNi4wIKXMDSoASAFQAw%3D%3D'>Metterra Hotel on Whyte</a> - 4-star hotel  
+         <br></br> <a target='_blank' href='https://www.google.com/travel/search?q=hotels%20near%20campio%20ritchie&g2lb=4965990%2C72471280%2C72560029%2C72573224%2C72647020%2C72686036%2C72803964%2C72882230%2C73059275%2C73064764%2C121529349%2C121608706&hl=en-CA&gl=ca&ssta=1&ts=CAESCgoCCAMKAggDEAAaHBIaEhQKBwjqDxAFGA4SBwjqDxAFGA8YATICEAAqBwoFOgNDQUQ&qs=CAEyFENnc0lnYWIxNWVhbTBLbXpBUkFCOApCCRGB0K8iDJDgnkIJEd0cXqJyyV11QgkRRYzK32lK0cFaYjJgqgFdCg0vZy8xMXg2NDZ2MG5xEAEqCiIGaG90ZWxzKAAyHhABIhq0rHeh0U9reKAQiU-ZRSsfZeAuVscNFbuQNzIeEAIiGmhvdGVscyBuZWFyIGNhbXBpbyByaXRjaGll&ap=aAG6AQhvdmVydmlldw&ictx=111&ved=0CAAQ5JsGahcKEwjwrPzcsa-UAxUAAAAAHQAAAAAQBQ'>Ramada by Wyndham Edmonton South</a> - 3-star hotel  
+          <br></br><a target='_blank' href='https://www.google.com/travel/search?q=hotels%20near%20campio%20ritchie&g2lb=4965990%2C72471280%2C72560029%2C72573224%2C72647020%2C72686036%2C72803964%2C72882230%2C73059275%2C73064764%2C121529349%2C121608706&hl=en-CA&gl=ca&ssta=1&ts=CAESCgoCCAMKAggDEAAaHBIaEhQKBwjqDxAFGA4SBwjqDxAFGA8YATICEAAqBwoFOgNDQUQ&qs=CAEyFENnc0kyc3lNLXFLSHZaM0FBUkFCOApCCRGB0K8iDJDgnkIJEd0cXqJyyV11QgkRRYzK32lK0cFaYjJgqgFdCg0vZy8xMXg2NDZ2MG5xEAEqCiIGaG90ZWxzKAAyHhABIhq0rHeh0U9reKAQiU-ZRSsfZeAuVscNFbuQNzIeEAIiGmhvdGVscyBuZWFyIGNhbXBpbyByaXRjaGll&ap=aAG6AQhvdmVydmlldw&ictx=111&ved=0CAAQ5JsGahcKEwiQw8nusa-UAxUAAAAAHQAAAAAQBQ'>Four Points by Sheraton Edmonton South</a> - 3-star hotel  
+              
+              </div>}
           </div>
          
         </div>

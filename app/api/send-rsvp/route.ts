@@ -52,7 +52,8 @@ const buttonText = isInitialInvite ? "Confirm RSVP" : "Check out our Website!";
               </h1>
               
               <p style="color: #253225; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; margin: 20px 0 10px 0;">
-                September 5, 2026 • Campio Ritchie
+                September 5, 2026 • Campio Ritchie <br></br>
+                4:30 Cocktails  •  5:00 Ceremony
               </p>
 
               ${!isInitialInvite ? `
