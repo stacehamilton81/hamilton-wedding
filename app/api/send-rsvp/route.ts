@@ -67,7 +67,7 @@ const buttonText = isInitialInvite ? "Confirm RSVP" : "Check out our Website!";
               <p style="color: #4d4d4d; font-size: 15px; line-height: 1.6; margin-bottom: 30px;">
                 Hi ${guestName},<br><br>
                 ${isInitialInvite 
-                  ? "We would love for you to join us for our intimate celebration. Please confirm your attendance via the link below."
+                  ? "We would love for you to join us for our intimate celebration. Please confirm your attendance via the link below.  We would appreciate a response by August 5, 2026."
                   : (attending 
                       ? "We are so excited to have you join us for our intimate celebration! We'll keep you updated with more details as we get closer." 
                       : "We're sorry you can't make it, but we appreciate you letting us know. We'll find another time to celebrate soon!")
