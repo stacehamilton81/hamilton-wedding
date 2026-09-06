@@ -30,14 +30,22 @@ interface PhotoSet {
   full: string;
 }
 
+const PAGE_SIZE = 100;
+
 export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
   const [images, setImages] = useState<PhotoSet[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [page, setPage] = useState(0);
 
   useEffect(() => {
     fetchImages();
   }, []);
+
+  useEffect(() => {
+    const pageCount = Math.ceil(images.length / PAGE_SIZE);
+    if (page > 0 && page >= pageCount) setPage(Math.max(0, pageCount - 1));
+  }, [images, page]);
 
   const handleDownload = async (url: string) => {
     try {
@@ -61,32 +69,31 @@ export default function Home() {
       const { data, error } = await supabase.storage
         .from('WEDDING-PHOTOS')
         .list('thumbs', {
-          limit: 100,
+          limit: 1000,
           sortBy: { column: 'created_at', order: 'desc' },
         });
 
       if (error) throw error;
+      if (!data) return;
 
-      if (data) {
-        const validFiles = data.filter(file => file.name !== '.emptyFolderPlaceholder');
+      const validFiles = data.filter(file => file.name !== '.emptyFolderPlaceholder');
 
-        const photoSets = validFiles.map((file) => {
-          const { data: thumbData } = supabase.storage
-            .from('WEDDING-PHOTOS')
-            .getPublicUrl(`thumbs/${file.name}`);
+      const photoSets = validFiles.map((file) => {
+        const { data: thumbData } = supabase.storage
+          .from('WEDDING-PHOTOS')
+          .getPublicUrl(`thumbs/${file.name}`);
 
-          const { data: fullData } = supabase.storage
-            .from('WEDDING-PHOTOS')
-            .getPublicUrl(`originals/${file.name}`);
-          
-          return {
-            thumb: `${thumbData.publicUrl}?t=${Date.now()}`,
-            full: `${fullData.publicUrl}?t=${Date.now()}`
-          };
-        });
+        const { data: fullData } = supabase.storage
+          .from('WEDDING-PHOTOS')
+          .getPublicUrl(`originals/${file.name}`);
 
-        setImages(photoSets);
-      }
+        return {
+          thumb: `${thumbData.publicUrl}?t=${Date.now()}`,
+          full: `${fullData.publicUrl}?t=${Date.now()}`
+        };
+      });
+
+      setImages(photoSets);
     } catch (err) {
       console.error("Error fetching images:", err);
     }
@@ -154,6 +161,7 @@ export default function Home() {
 
     setTimeout(async () => {
       await fetchImages();
+      setPage(0);
       setIsUploading(false);
     }, 1000);
 
@@ -208,8 +216,11 @@ const handleDelete = async (fullUrl: string) => {
   }
 };
 
+  const pageCount = Math.ceil(images.length / PAGE_SIZE);
+  const pagedImages = images.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+
   return (
-    <div 
+    <div
       className="min-h-screen bg-cover bg-center bg-no-repeat transition-all duration-1000 relative font-sans"
       style={{ 
         backgroundImage: images[0] ? `url(${images[0].thumb})` : 'none',
@@ -285,21 +296,39 @@ const handleDelete = async (fullUrl: string) => {
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#d0006f]"></div>
               </div>
             )}
-            {images.map((imgSet, index) => (
-              <div 
-                key={index} 
+            {pagedImages.map((imgSet, index) => (
+              <div
+                key={page * PAGE_SIZE + index}
                 className="aspect-square bg-white/5 overflow-hidden cursor-pointer active:scale-95 transition-all duration-300 rounded-sm group relative"
                 onClick={() => setSelectedImageIndex(index)}
               >
-                <img 
-                  src={imgSet.thumb} 
-                  className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110" 
-                  alt="Gallery thumbnail" 
-                  loading="lazy" 
+                <img
+                  src={imgSet.thumb}
+                  className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
+                  alt="Gallery thumbnail"
+                  loading="lazy"
                 />
               </div>
             ))}
           </div>
+
+          {pageCount > 1 && (
+            <div className="flex items-center justify-center gap-2 pb-8">
+              {Array.from({ length: pageCount }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setPage(i)}
+                  className={`w-8 h-8 rounded-full text-xs font-black transition-all ${
+                    page === i
+                      ? 'bg-[#d0006f] text-white'
+                      : 'bg-white/10 text-white/50 hover:bg-white/20'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -312,36 +341,36 @@ const handleDelete = async (fullUrl: string) => {
             &times;
           </button>
           
-          <img 
-            src={images[selectedImageIndex].thumb}
-            className="max-w-full max-h-[75vh] object-contain shadow-2xl rounded-lg" 
-            alt="Preview view" 
+          <img
+            src={pagedImages[selectedImageIndex].thumb}
+            className="max-w-full max-h-[75vh] object-contain shadow-2xl rounded-lg"
+            alt="Preview view"
           />
 
           <div className="absolute bottom-10 flex items-center justify-between w-full max-w-[500px] px-6">
-            <button 
-              onClick={() => handleDelete(images[selectedImageIndex].full)}
+            <button
+              onClick={() => handleDelete(pagedImages[selectedImageIndex].full)}
               className="bg-transparent border border-white/20 text-white/40 rounded-xl px-4 py-3 text-[10px] tracking-widest uppercase hover:text-white hover:border-white transition-all"
             >
               Delete
             </button>
 
             <div className="flex gap-2">
-              <button 
+              <button
                 className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-5 py-3 font-bold text-xs transition-all"
-                onClick={() => setSelectedImageIndex((prev) => (prev! > 0 ? prev! - 1 : images.length - 1))}
+                onClick={() => setSelectedImageIndex((prev) => (prev! > 0 ? prev! - 1 : pagedImages.length - 1))}
               >
                 PREV
               </button>
-              <button 
+              <button
                 className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-5 py-3 font-bold text-xs transition-all"
-                onClick={() => setSelectedImageIndex((prev) => (prev! < images.length - 1 ? prev! + 1 : 0))}
+                onClick={() => setSelectedImageIndex((prev) => (prev! < pagedImages.length - 1 ? prev! + 1 : 0))}
               >
                 NEXT
               </button>
-              
-              <button 
-                onClick={() => handleDownload(images[selectedImageIndex].full)}
+
+              <button
+                onClick={() => handleDownload(pagedImages[selectedImageIndex].full)}
                 className="bg-[#d0006f] hover:bg-[#e6007a] text-white rounded-xl px-4 py-3 shadow-lg transition-all"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
