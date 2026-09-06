@@ -28,9 +28,14 @@ const getDeviceId = () => {
 interface PhotoSet {
   thumb: string;
   full: string;
+  type: 'image' | 'video';
 }
 
 const PAGE_SIZE = 100;
+
+const VIDEO_EXTENSIONS = ['mp4', 'mov', 'webm', 'm4v', 'avi', 'mkv'];
+const isVideoFileName = (name: string) =>
+  VIDEO_EXTENSIONS.includes(name.split('.').pop()?.toLowerCase() ?? '');
 
 export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
@@ -38,23 +43,15 @@ export default function Home() {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [page, setPage] = useState(0);
 
-  useEffect(() => {
-    fetchImages();
-  }, []);
-
-  useEffect(() => {
-    const pageCount = Math.ceil(images.length / PAGE_SIZE);
-    if (page > 0 && page >= pageCount) setPage(Math.max(0, pageCount - 1));
-  }, [images, page]);
-
   const handleDownload = async (url: string) => {
     try {
       const response = await fetch(url);
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
+      const ext = url.split('/').pop()?.split('?')[0].split('.').pop() || 'jpg';
       link.href = blobUrl;
-      link.download = `Hamilton-Wedding-${Date.now()}.jpg`;
+      link.download = `Hamilton-Wedding-${Date.now()}.${ext}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -89,7 +86,8 @@ export default function Home() {
 
         return {
           thumb: `${thumbData.publicUrl}?t=${Date.now()}`,
-          full: `${fullData.publicUrl}?t=${Date.now()}`
+          full: `${fullData.publicUrl}?t=${Date.now()}`,
+          type: isVideoFileName(file.name) ? 'video' as const : 'image' as const,
         };
       });
 
@@ -98,6 +96,10 @@ export default function Home() {
       console.error("Error fetching images:", err);
     }
   };
+
+  useEffect(() => {
+    fetchImages();
+  }, []);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
   const files = e.target.files;
@@ -126,22 +128,38 @@ export default function Home() {
         throw fullError;
       }
 
-      // CHECKPOINT 2: Compression
-      console.log(`[${i+1}/${files.length}] Compressing thumbnail...`);
-      const options = { maxSizeMB: 0.1, maxWidthOrHeight: 800, useWebWorker: true };
-      const compressedBlob = await imageCompression(file, options);
+      const isVideo = file.type.startsWith('video/');
 
-      // CHECKPOINT 3: Thumbnail Upload
-      console.log(`[${i+1}/${files.length}] Uploading thumbnail to storage...`);
-      const { error: thumbError } = await supabase.storage
-        .from('WEDDING-PHOTOS')
-        .upload(`thumbs/${fileName}`, compressedBlob, {
-          metadata: { owner: deviceId }
-        });
-      
-      if (thumbError) {
-        console.error("❌ Storage Error (Thumb):", thumbError);
-        throw thumbError;
+      if (isVideo) {
+        // Videos: reuse the original as its own "thumb" via a server-side copy
+        // (no client-side compression is possible for video).
+        console.log(`[${i+1}/${files.length}] Copying video for thumbnail...`);
+        const { error: copyError } = await supabase.storage
+          .from('WEDDING-PHOTOS')
+          .copy(`originals/${fileName}`, `thumbs/${fileName}`);
+
+        if (copyError) {
+          console.error("❌ Storage Error (Video Copy):", copyError);
+          throw copyError;
+        }
+      } else {
+        // CHECKPOINT 2: Compression
+        console.log(`[${i+1}/${files.length}] Compressing thumbnail...`);
+        const options = { maxSizeMB: 0.1, maxWidthOrHeight: 800, useWebWorker: true };
+        const compressedBlob = await imageCompression(file, options);
+
+        // CHECKPOINT 3: Thumbnail Upload
+        console.log(`[${i+1}/${files.length}] Uploading thumbnail to storage...`);
+        const { error: thumbError } = await supabase.storage
+          .from('WEDDING-PHOTOS')
+          .upload(`thumbs/${fileName}`, compressedBlob, {
+            metadata: { owner: deviceId }
+          });
+
+        if (thumbError) {
+          console.error("❌ Storage Error (Thumb):", thumbError);
+          throw thumbError;
+        }
       }
 
       // CHECKPOINT 4: Database Insert
@@ -165,12 +183,15 @@ export default function Home() {
       setIsUploading(false);
     }, 1000);
 
-  } catch (error: any) {
+  } catch (error) {
     // This will now catch and print the actual error object from Supabase
     console.error('Final Catch Triggered:', error);
-    
+
     // If the error object is empty, let's try to find a message elsewhere
-    const errorMessage = error.message || error.error_description || "Unknown Error";
+    const errorMessage =
+      (error as { message?: string; error_description?: string })?.message ||
+      (error as { message?: string; error_description?: string })?.error_description ||
+      "Unknown Error";
     alert("Upload failed: " + errorMessage);
     
     setIsUploading(false);
@@ -216,15 +237,17 @@ const handleDelete = async (fullUrl: string) => {
   }
 };
 
-  const pageCount = Math.ceil(images.length / PAGE_SIZE);
-  const pagedImages = images.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+  const pageCount = Math.max(1, Math.ceil(images.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount - 1);
+  const pagedImages = images.slice(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE);
+  const heroImage = images.find((img) => img.type === 'image');
 
   return (
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat transition-all duration-1000 relative font-sans"
-      style={{ 
-        backgroundImage: images[0] ? `url(${images[0].thumb})` : 'none',
-        backgroundColor: '#111' 
+      style={{
+        backgroundImage: heroImage ? `url(${heroImage.thumb})` : 'none',
+        backgroundColor: '#111'
       }}
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"></div>
@@ -267,7 +290,7 @@ const handleDelete = async (fullUrl: string) => {
       ? 'bg-pink-800 opacity-80' 
       : 'bg-[#d0006f] hover:bg-[#e6007a]' 
     }`}>
-    <input type="file" accept="image/*" multiple className="hidden" disabled={isUploading} onChange={handleFileUpload} />
+    <input type="file" accept="image/*,video/*" multiple className="hidden" disabled={isUploading} onChange={handleFileUpload} />
     
     {isUploading ? (
       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -298,16 +321,33 @@ const handleDelete = async (fullUrl: string) => {
             )}
             {pagedImages.map((imgSet, index) => (
               <div
-                key={page * PAGE_SIZE + index}
+                key={currentPage * PAGE_SIZE + index}
                 className="aspect-square bg-white/5 overflow-hidden cursor-pointer active:scale-95 transition-all duration-300 rounded-sm group relative"
                 onClick={() => setSelectedImageIndex(index)}
               >
-                <img
-                  src={imgSet.thumb}
-                  className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
-                  alt="Gallery thumbnail"
-                  loading="lazy"
-                />
+                {imgSet.type === 'video' ? (
+                  <>
+                    <video
+                      src={imgSet.thumb}
+                      className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
+                      muted
+                      playsInline
+                      preload="metadata"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-8 h-8 drop-shadow-lg opacity-90">
+                        <path fillRule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </>
+                ) : (
+                  <img
+                    src={imgSet.thumb}
+                    className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
+                    alt="Gallery thumbnail"
+                    loading="lazy"
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -319,7 +359,7 @@ const handleDelete = async (fullUrl: string) => {
                   key={i}
                   onClick={() => setPage(i)}
                   className={`w-8 h-8 rounded-full text-xs font-black transition-all ${
-                    page === i
+                    currentPage === i
                       ? 'bg-[#d0006f] text-white'
                       : 'bg-white/10 text-white/50 hover:bg-white/20'
                   }`}
@@ -341,11 +381,21 @@ const handleDelete = async (fullUrl: string) => {
             &times;
           </button>
           
-          <img
-            src={pagedImages[selectedImageIndex].thumb}
-            className="max-w-full max-h-[75vh] object-contain shadow-2xl rounded-lg"
-            alt="Preview view"
-          />
+          {pagedImages[selectedImageIndex].type === 'video' ? (
+            <video
+              src={pagedImages[selectedImageIndex].full}
+              className="max-w-full max-h-[75vh] object-contain shadow-2xl rounded-lg"
+              controls
+              autoPlay
+              playsInline
+            />
+          ) : (
+            <img
+              src={pagedImages[selectedImageIndex].thumb}
+              className="max-w-full max-h-[75vh] object-contain shadow-2xl rounded-lg"
+              alt="Preview view"
+            />
+          )}
 
           <div className="absolute bottom-10 flex items-center justify-between w-full max-w-[500px] px-6">
             <button
